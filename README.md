@@ -2,7 +2,7 @@ The Dark Tower Adventures (C Rewrite)
 
 BBS Door Game using OpenDoors
 
-https://travis-ci.com/DRPanther/TDTA-C.svg?token=KMBKVWNe7KxPHS8erLJA&branch=master
+[![Build Status](https://travis-ci.com/DRPanther/TDTA-C.svg?token=KMBKVWNe7KxPHS8erLJA&branch=master)](https://travis-ci.com/DRPanther/TDTA-C)
 
 TDTA is inspired by both LORD and Arrowbridge door games. It has elements
 of both, while being inspired by Stephen King.
