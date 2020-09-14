@@ -7,8 +7,6 @@ obj/
 *.depend
 *.layout
 tdta
-.travis.yml
-appveyor.yml
 tdtaibbs.ply
 tdtaibbs.idx
 tdtaplyr.txt
