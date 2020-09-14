@@ -1,0 +1,17 @@
+bin/
+obj/
+.git/
+*.o
+*.zip
+*.cbp
+*.depend
+*.layout
+tdta
+.travis.yml
+appveyor.yml
+tdtaibbs.ply
+tdtaibbs.idx
+tdtaplyr.txt
+tdtaplyr.dat
+tdtaplyr.idx
+rcstdta.dly

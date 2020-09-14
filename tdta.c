@@ -60,7 +60,7 @@ struct wrec weapons[17];
 struct arec armours[17];
 struct master Mstr[13];
 struct master Master;
-struct ibbslinks links[10];
+struct ibbslinks links[20];
 
 extern void setweapons();
 extern void setarmour();
@@ -175,6 +175,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int main(int argc, char *argv[])
 #endif
 {
+#ifdef ODPLAT_WIN32
+   od_parse_cmd_line(lpszCmdLine);
+#else
+   od_parse_cmd_line(argc, argv);
+#endif
     char ch;
     int done = 0;
     strcpy(od_control.od_prog_name, "The Dark Tower Adventures");
