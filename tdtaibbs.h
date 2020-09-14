@@ -102,7 +102,7 @@ struct ritems
 struct ibbslinks {
 char linknumber[4];
 char linkaddress[20];
-char linkfilename[30];
+char linkfilename[60];
 char linkout[20];
 };
 

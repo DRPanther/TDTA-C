@@ -86,7 +86,7 @@ void ibbs_out()
     IBBSadd_player_idx();
     x++;
   }
-  char link[40];
+  char link[60];
   //char link1[]=links[y].linkout"/test.dat");
   od_set_cursor(1,1);
   y=1;
