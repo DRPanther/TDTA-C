@@ -19,12 +19,12 @@
 */
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 12
+#define VERSION_MINOR 1
 
 #ifndef VERSION_TYPE
 #define VERSION_TYPE "alpha"
 #endif
-#define VERSION_DAY 01
+#define VERSION_DAY 14
 #define VERSION_MONTH "SEP"
 #define VERSION_YEAR 2020
 
