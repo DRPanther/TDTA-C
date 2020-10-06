@@ -116,7 +116,7 @@ struct PlyrLocation {
 
 struct monst {
   int index;
-  char name[32];
+  char name[32]; // extra space for player alias + "Shadow of "
   int strength;
   int def;
   int gold;

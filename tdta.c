@@ -46,6 +46,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include "OpenDoor.h"
 #include "tdta.h"
@@ -108,10 +109,10 @@ void ibbs_out();
 
 char comma[25];
 char mapchar;
-char ansipath[30];
-char datapath[10];
-char logpath[10];
-char logname[25];
+char ansipath[PATH_MAX];
+char datapath[PATH_MAX];
+char logpath[PATH_MAX];
+char logname[PATH_MAX];
 char SystemName[20];
 char Sysop[15];
 char systemlink[4];
@@ -124,12 +125,19 @@ char linkaddress[20];
 char out_directory[20];
 char in_directory[20];
 
+void send_ansi_file(const char *ansi) {
+  char tmpPath[PATH_MAX];
+  snprintf(tmpPath, sizeof tmpPath, "%s%s", ansipath, ansi);
+
+  od_send_file(tmpPath);
+}
+
 void logentry(int entry)  //1 log in - 2 log out - 3 fought trainer - 4 fought player - 5 new player - 6 ibbsin - 7 ibbsout
 {
     struct tm* current_time;
     time_t s = time(NULL);
     current_time = localtime(&s);
-    sprintf(logname,"%s%d%02d%02d.log",logpath,current_time->tm_year+1900,current_time->tm_mon+1,current_time->tm_mday);
+    snprintf(logname, sizeof logname, "%s%d%02d%02d.log",logpath,current_time->tm_year+1900,current_time->tm_mon+1,current_time->tm_mday);
 
     FILE *fptr;
     fptr=fopen(logname,"a");
@@ -206,16 +214,16 @@ int main(int argc, char *argv[])
     od_sleep(500);
     od_printf("`blue`.");
     od_sleep(500);
-    char splashansi[50];
-    sprintf(splashansi,"%s%s",ansipath,"splash");
-    od_send_file(splashansi);
+    
+    send_ansi_file("splash");
+
     od_clear_keybuffer();
     od_get_key(TRUE);
     while (!done) {
         od_clr_scr();
-        char menuansi[50];
-        sprintf(menuansi,"%s%s",ansipath,"menu");
-        od_send_file(menuansi);
+
+        send_ansi_file("menu");
+
         od_set_cursor(5,33);
         od_printf("`bright blue`V`blue`ersion %d.%d %s",VERSION_MAJOR,VERSION_MINOR,VERSION_TYPE);
         od_set_cursor(6,32);
@@ -240,9 +248,7 @@ int main(int argc, char *argv[])
                 break;
             case 'I':
                 od_clr_scr();
-                char infoansi[50];
-                sprintf(infoansi,"%s%s",ansipath,"info");
-                od_send_file(infoansi);
+                send_ansi_file("info");
                 gamepause();
                 break;
             case 'V':
@@ -321,13 +327,9 @@ void readconfig()
       strcpy(systemlink,removefirst(systemlink));
       newline_kill(systemlink);
       systemlinki=atoi(systemlink);
-      if(strlen(systemlink)==1)
+      if (systemlinki < 10)
       {
-        char zero[2]="0";
-        char tmp[2];
-        strcpy(tmp,systemlink);
-        //strcpy(systemlink,tmp);
-        sprintf(systemlink,"%s%s",zero,tmp);
+        sprintf(systemlink,"0%d", systemlinki);
       }
     }
     if(strncmp(s,"InterBBS=",8)==0)
@@ -354,10 +356,8 @@ void readconfig()
       newline_kill(links[x].linknumber);
       if(strlen(links[x].linknumber)==1)
       {
-        char zero[2]="0";
-        //strcpy(tmp,"");
         strcpy(tmp,links[x].linknumber);
-        sprintf(links[x].linknumber,"%s%s",zero,tmp);
+        sprintf(links[x].linknumber,"0%s", tmp);
       }
       //od_printf("%d %s %s\r\n",x,tmp,links[x].linknumber);
       //gamepause();
@@ -464,9 +464,7 @@ void town(int x)
   while (!done)
   {
     od_clr_scr();
-    char townansi[40];
-    sprintf(townansi,"%s%s",ansipath,"town");           //need ansi screens for the different towns
-    od_send_file(townansi);
+    send_ansi_file("town");         //need ansi screens for the different towns
     od_set_cursor(4,48);
     od_printf("`blue`(`bright blue`F`blue`)`bright blue`ollow The Beam");
     od_set_cursor(5,48);
@@ -608,7 +606,6 @@ void map(int z)
   int done=0;
   bool userbattle=false;
   char ch;
-  char mapansi[40];
   int v=1;
   FILE *fptr;
   struct PlyrRec PlyrInfo;
@@ -638,8 +635,7 @@ void map(int z)
           y=19;
         }
         SavePlyr();
-        sprintf(mapansi,"%s%s",ansipath,"map1");
-        od_send_file(mapansi);
+        send_ansi_file("map1");
         break;
       case 2:
         if (Plyr.cord_x==0 && Plyr.cord_y==0)
@@ -648,8 +644,7 @@ void map(int z)
           y=10;
         }
         SavePlyr();
-        sprintf(mapansi,"%s%s",ansipath,"map2");
-        od_send_file(mapansi);
+        send_ansi_file("map2");
         break;
       case 3:
         if (Plyr.cord_x==0 && Plyr.cord_y==0)
@@ -658,8 +653,7 @@ void map(int z)
           y=2;
         }
         SavePlyr();
-        sprintf(mapansi,"%s%s",ansipath,"map3");
-        od_send_file(mapansi);
+        send_ansi_file("map3");
         break;
       case 4:
         if (Plyr.cord_x==0 && Plyr.cord_y==0)
@@ -668,8 +662,7 @@ void map(int z)
             y=10;
         }
         SavePlyr();
-        sprintf(mapansi,"%s%s",ansipath,"map4");
-        od_send_file(mapansi);
+        send_ansi_file("map4");
         break;
     }
     if (x<1) x=1;
@@ -859,14 +852,12 @@ void map(int z)
 
 char setmap(int mapnumber,int xcord,int ycord)
 {
-  char mapasc[40];
   char temp[85];
   int b;
   FILE *fptr;
   mapchar=' ';
   int a=((mapnumber-1)*20)+ycord;
-  sprintf(mapasc,"%s%s",ansipath,"maps.asc");
-  fptr = fopen(mapasc,"r");
+  fptr = fopen("maps.asc","r");
   if (fptr)
   {
     for(b=1;b<a;b++)
@@ -878,14 +869,14 @@ char setmap(int mapnumber,int xcord,int ycord)
     //od_printf("%d %d\n\r%s\n\r",b,a,temp);
     //od_printf("%d %d %c\n\r",xcord,ycord,temp[xcord]);
     mapchar=temp[xcord];
+    fclose(fptr);
     return mapchar;
   }
   else
   {
-    od_printf("Unable to open %s",mapasc);
+    od_printf("Unable to open maps.asc");
     gamepause();
   }
-  fclose(fptr);
   return 0;
 }
 
@@ -895,10 +886,8 @@ void healer()
   int temp;
   int temp1;
   int tmp;
-  char healansi[40];
   od_clr_scr();
-  sprintf(healansi,"%s%s",ansipath,"healers");
-  od_send_file(healansi);
+  send_ansi_file("healers");
   od_set_cursor(6,52);
   od_printf("`blue`(`bright blue`H`blue`)`bright blue`eal All Possible");
   od_set_cursor(7,52);
@@ -970,11 +959,9 @@ void weaponshop()
   char yn;
   bool done=false;
   bool buy=false;
-  char weapansi[40];
   //bool sell=false;
   od_clr_scr();
-  sprintf(weapansi,"%s%s",ansipath,"weapon");
-  od_send_file(weapansi);
+  send_ansi_file("weapon");
   od_set_cursor(4,46);
   od_printf("`blue`(`bright blue`A`blue`) `bright blue`Stick                  200");
   od_set_cursor(5,46);
@@ -1146,11 +1133,9 @@ void armourshop()
   char x;
   bool done=false;
   bool buy=false;
-  char armansi[40];
   //bool sell=false;
   od_clr_scr();
-  sprintf(armansi,"%s%s",ansipath,"armour");
-  od_send_file(armansi);
+  send_ansi_file("armour");
   od_set_cursor(4,46);
   od_printf("`blue`(`bright blue`A`blue`) `bright blue`Coat                     200");
   od_set_cursor(5,46);
@@ -1360,7 +1345,6 @@ void dailynews()
   char s[70];
   int x=0;
   int y=0;
-  char newsansi[40];
   od_clr_scr();
   FILE *fptr;
   FILE *fptr2;
@@ -1433,8 +1417,7 @@ void dailynews()
     fclose(fptr);
   }
   od_control_get()->od_page_pausing = FALSE;
-  sprintf(newsansi,"%s%s",ansipath,"news");
-  od_send_file(newsansi);
+  send_ansi_file("news");
   od_control_get()->od_page_pausing = TRUE;
   fptr = fopen(NewsFile,"r");
   od_set_cursor(4,1);
@@ -1581,12 +1564,10 @@ void bank()
   int done=0;
   unsigned long int dep;
   //char buffer[12]="";
-  char bankansi[40];
   while (!done)
   {
     od_clr_scr();
-    sprintf(bankansi,"%s%s",ansipath,"bank");
-    od_send_file(bankansi);
+    send_ansi_file("bank");
     od_set_cursor(7,52);
     od_printf("`blue`(`bright blue`D`blue`) `bright blue`Deposit Gold");
     od_set_cursor(8,52);
@@ -1605,7 +1586,7 @@ void bank()
     {
       case 'd':
         od_clr_scr();
-        od_send_file(bankansi);
+        send_ansi_file("bank");
         od_set_cursor(8,48);
         od_printf("`blue`H`bright blue`ow much gold would you");
         od_set_cursor(10,48);
@@ -1641,7 +1622,7 @@ void bank()
         break;
       case 'w':
         od_clr_scr();
-        od_send_file(bankansi);
+        send_ansi_file("bank");
         od_set_cursor(8,48);
         od_printf("`blue`H`bright blue`ow much gold would you");
         od_set_cursor(10,48);
@@ -1733,12 +1714,10 @@ void playerstats()
 {
   char ch;
   bool done=false;
-  char statansi[40];
   while (!done)
   {
     od_clr_scr();
-    sprintf(statansi,"%s%s",ansipath,"stats");
-    od_send_file(statansi);
+    send_ansi_file("stats");
     od_set_cursor(2,2);
     od_printf("  `bright blue`%s`blue`'s Stats...",Plyr.Alias);
     od_set_cursor(3,2);
@@ -1881,13 +1860,11 @@ void tower()          //will be used at end of game...
   int done=0;
   bool ran=false;
   int tmp;
-  char toweransi[40];
   while (!done)
   {
     if (Plyr.dead==true) done=1;
     od_clr_scr();
-    sprintf(toweransi,"%s%s",ansipath,"tower");
-    od_send_file(toweransi);
+    send_ansi_file("tower");
     od_set_cursor(7,3);
     od_printf("`blue`(`bright blue`L`blue`)`bright blue`ook around the room");
     od_set_cursor(9,3);
@@ -2019,14 +1996,12 @@ void ranitem(int randomitem)
 {
   int temp;
   int temp1;
-  char eventansi[40];
   od_clr_scr();
   switch (randomitem)
   {
   case 1:
     {
-      sprintf(eventansi,"%s%s",ansipath,"evnthlth");
-      od_send_file(eventansi);
+      send_ansi_file("evnthlth");
       od_set_cursor(9,5);
       od_printf("`blue`A vial containing a `green`green `blue`liquid in it...");
       od_set_cursor(11,5);
@@ -2043,8 +2018,7 @@ void ranitem(int randomitem)
     }
     case 2:
     {
-      sprintf(eventansi,"%s%s",ansipath,"evntgold");
-      od_send_file(eventansi);
+      send_ansi_file("evntgold");
       od_set_cursor(8,5);
       od_printf("`blue`A bag of `bright blue`GOLD!");
       srand(time(0));
@@ -2061,8 +2035,7 @@ void ranitem(int randomitem)
     }
   case 3:
     {
-      sprintf(eventansi,"%s%s",ansipath,"evntgold");
-      od_send_file(eventansi);
+      send_ansi_file("evntgold");
       od_set_cursor(8,5);
       od_printf("`blue`A Gold Eating Reptile!");
       srand(time(0));
@@ -2079,8 +2052,7 @@ void ranitem(int randomitem)
     }
   case 4:
     {
-      sprintf(eventansi,"%s%s",ansipath,"evnthlth");
-      od_send_file(eventansi);
+      send_ansi_file("evnthlth");
       od_set_cursor(9,5);
       od_printf("`blue`A vial containing a `green`green `blue`liquid in it...");
       od_set_cursor(11,5);
@@ -2099,8 +2071,7 @@ void ranitem(int randomitem)
     {
       if (Plyr.weapon_num<16)
       {
-        sprintf(eventansi,"%s%s",ansipath,"evntwepn");
-        od_send_file(eventansi);
+        send_ansi_file("evntwepn");
         od_set_cursor(8,5);
         od_printf("`blue`An `bright blue`upgraded weapon!");
         od_set_cursor(10,5);
@@ -2124,8 +2095,7 @@ void ranitem(int randomitem)
     {
       if (Plyr.arm_num<16)
       {
-        sprintf(eventansi,"%s%s",ansipath,"evntarmr");
-        od_send_file(eventansi);
+        send_ansi_file("evntarmr");
         od_set_cursor(8,5);
         od_printf("`blue`New `bright blue`upgraded armour!");
         od_set_cursor(10,5);
@@ -2147,8 +2117,8 @@ void ranitem(int randomitem)
     }
   case 7:
     {
-      sprintf(eventansi,"%s%s",ansipath,"evntwepn");
-      od_send_file(eventansi);
+      send_ansi_file("evntwepn");
+
       if (Plyr.weapon_num>1)
       {
         od_set_cursor(8,5);
@@ -2175,8 +2145,8 @@ void ranitem(int randomitem)
     }
   case 8:
     {
-      sprintf(eventansi,"%s%s",ansipath,"evntarmr");
-      od_send_file(eventansi);
+      send_ansi_file("evntarmr");
+
       if (Plyr.arm_num>1)
       {
         od_set_cursor(8,5);
@@ -2279,7 +2249,7 @@ void monfight(int monstype,int usernumber)         //1-normal enemy 2-master 3-u
     {
       mon1.index=Plyr.Index;
       //strcpy(mon1.name,Plyr.Alias);
-      sprintf(mon1.name,"%s%s","Shadow of ",Plyr.Alias);
+      snprintf(mon1.name, sizeof mon1.name, "Shadow of %s",Plyr.Alias);
       mon1.strength=Plyr.strength;
       strcpy(mon1.weapon,Plyr.weapon);
       mon1.exp_points=Plyr.exp;
@@ -2503,12 +2473,11 @@ void bnb()
 {
   char ch;
   int done=0;
-  char bnbansi[40];
   while (!done)
   {
     od_clr_scr();
-    sprintf(bnbansi,"%s%s",ansipath,"bnb");
-    od_send_file(bnbansi);
+    send_ansi_file("bnb");
+
     od_set_cursor(23,1);
     od_printf("`blue`Your Command: `bright blue`%s`blue`:",od_control.user_name);
     ch = od_get_answer("RrCcBbEeSsGgDdXxTt");
@@ -2594,11 +2563,10 @@ void dogpark()
 void room()
 {
   char ch;
-  char roomansi[40];
   int roomprice;
   od_clr_scr();
-  sprintf(roomansi,"%s%s",ansipath,"room");
-  od_send_file(roomansi);
+  send_ansi_file("room");
+
   roomprice=Plyr.level*500;
   od_set_cursor(10,54);
   goldconvert(roomprice);
@@ -2619,11 +2587,10 @@ void room()
 void eat()
 {
   char ch;
-  char eatansi[40];
   int foodprice;
   od_clr_scr();
-  sprintf(eatansi,"%s%s",ansipath,"eat");
-  od_send_file(eatansi);
+  send_ansi_file("eat");
+
   foodprice=Plyr.level*500;
   od_set_cursor(5,46);
   goldconvert(foodprice);
@@ -2657,7 +2624,6 @@ void eat()
 
 void backstory()
 {
-  char threedoors[40];
   od_clr_scr();
   od_printf("`blue`You wake up and quickly look around you.\n\n\r");
   od_printf("`blue`As you look behind you, where there are waves crashing on the beach.\n\n\r");
@@ -2666,8 +2632,8 @@ void backstory()
   od_printf("`blue`and that you are following the 'Beam' to the Dark Tower. Once there, you\n\n\r");
   od_printf("`blue`know that you must defeat the Man in Black.");
   gamepause();
-  sprintf(threedoors,"%s%s",ansipath,"3doors");
-  od_send_file(threedoors);
+  send_ansi_file("3doors");
+
   gamepause();
 }
 
@@ -2691,7 +2657,7 @@ void play_game()
     while (name_taken)
     {
       od_printf("\r\n`blue`You look new. What's your name? ");
-      od_input_str(Plyr.Alias,32,32,126);
+      od_input_str(Plyr.Alias,22,32,126); // shrunk this so shadow of ALIAS wont overflow
       if (strlen(Plyr.Alias)==0)
       {
         od_printf("\r\n\r\nOk, see you later.\r\n");
