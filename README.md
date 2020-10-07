@@ -1,5 +1,7 @@
 The Dark Tower Adventures (C Rewrite)
 
+Special Thanks to apam for his assitance and bugfixes.
+
 BBS Door Game using OpenDoors
 
 [![Build Status](https://travis-ci.com/DRPanther/TDTA-C.svg?token=KMBKVWNe7KxPHS8erLJA&branch=master)](https://travis-ci.com/DRPanther/TDTA-C)
