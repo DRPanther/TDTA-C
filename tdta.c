@@ -1096,24 +1096,29 @@ void weaponshop()
   }
   if (strcasecmp(ch,"S")==0 && !buy)
   {
-    od_printf("\r\n     Are you sure you want to sell your %s for %d? (Y/N) ",Plyr.weapon,weapons[Plyr.weapon_num].price/2);
-    yn=toupper(od_get_answer("YyNn"));
-    switch (yn)
-    {
-      case 'Y':
-        Plyr.gold+=weapons[Plyr.weapon_num].price/2;
-        Plyr.weapon_num=1;
-        strcpy(Plyr.weapon,weapons[Plyr.weapon_num].name);
-        Plyr.strength=weapons[Plyr.weapon_num].strength;
-        od_printf("\r\n     Sold! ");
-        done=true;
-        gamepause();
-        break;
-      case 'N':
-        od_printf("\r\n     Maybe next time...");
-        done=true;
-        gamepause();
-        break;
+    if (Plyr.weapon_num == 1) {
+      od_printf("\r\n     You feel you need to hang on to your fists...\r\n");
+      gamepause();
+    } else {
+      od_printf("\r\n     Are you sure you want to sell your %s for %d? (Y/N) ",Plyr.weapon,weapons[Plyr.weapon_num].price/2);
+      yn=toupper(od_get_answer("YyNn"));
+      switch (yn)
+      {
+        case 'Y':
+          Plyr.gold+=weapons[Plyr.weapon_num].price/2;
+          Plyr.weapon_num=1;
+          strcpy(Plyr.weapon,weapons[Plyr.weapon_num].name);
+          Plyr.strength=weapons[Plyr.weapon_num].strength;
+          od_printf("\r\n     Sold! ");
+          done=true;
+          gamepause();
+          break;
+        case 'N':
+          od_printf("\r\n     Maybe next time...");
+          done=true;
+          gamepause();
+          break;
+      }
     }
   }
   if (atoi(ch)<17 && atoi(ch)>1 && buy)
@@ -1269,24 +1274,29 @@ void armourshop()
   }
   if (strcasecmp(ch,"S")==0 && !buy)
   {
-    od_printf("\r\n     Are you sure you want to sell your %s for %d? (Y/N) ",Plyr.arm,armours[Plyr.arm_num].price/2);
-    x=od_get_answer("YyNn");
-    switch (x)
-    {
-      case 'Y':
-        Plyr.gold+=armours[Plyr.arm_num].price/2;
-        Plyr.arm_num=1;
-        strcpy(Plyr.arm,armours[Plyr.arm_num].name);
-        Plyr.def=armours[Plyr.arm_num].strength;
-        od_printf("\r\n     Sold! ");
-        done=true;
-        gamepause();
-        break;
-      case 'N':
-        od_printf("\r\n     Maybe next time...");
-        done=true;
-        gamepause();
-        break;
+    if (Plyr.arm_num == 1) {
+      od_printf("\r\n     You feel like you should keep your shirt.\r\n");
+      gamepause();
+    } else {
+      od_printf("\r\n     Are you sure you want to sell your %s for %d? (Y/N) ",Plyr.arm,armours[Plyr.arm_num].price/2);
+      x=od_get_answer("YyNn");
+      switch (x)
+      {
+        case 'Y':
+          Plyr.gold+=armours[Plyr.arm_num].price/2;
+          Plyr.arm_num=1;
+          strcpy(Plyr.arm,armours[Plyr.arm_num].name);
+          Plyr.def=armours[Plyr.arm_num].strength;
+          od_printf("\r\n     Sold! ");
+          done=true;
+          gamepause();
+          break;
+        case 'N':
+          od_printf("\r\n     Maybe next time...");
+          done=true;
+          gamepause();
+          break;
+      }
     }
   }
   if (atoi(ch)<16 && atoi(ch)>1 && buy)
