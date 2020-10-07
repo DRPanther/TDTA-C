@@ -91,7 +91,7 @@ int findtotaldigits(unsigned long int no);
 void weaponshop();
 void armourshop();
 void healer();
-void map(int z);
+int map(int z);
 char* goldconvert(long int x);
 void useitems();
 int checkitems();
@@ -453,7 +453,7 @@ void town(int x)
     Plyr.dead=false;
     Plyr.hit_points=Plyr.hit_max+Plyr.hit_multi;
     SavePlyr();
-    map(Plyr.map);
+    Plyr.map = map(Plyr.map);
   }
   if ((Plyr.cord_x != 0) && (Plyr.cord_y !=0))
   {
@@ -496,13 +496,13 @@ void town(int x)
     switch (ch)
     {
       case 'F':
-        map(Plyr.map);
+        Plyr.map = map(Plyr.map);
         SavePlyr();
         break;
       case 'P':
         temp = Plyr.map-1;
         if (temp < 1) temp=1;
-        map(temp);
+        Plyr.map = map(temp);
         SavePlyr();
         break;
       case 'B':
@@ -596,7 +596,7 @@ void town(int x)
   }
 }
 
-void map(int z)
+int map(int z)
 {
   int x,y;
   x=Plyr.cord_x;
@@ -609,9 +609,13 @@ void map(int z)
   int v=1;
   FILE *fptr;
   struct PlyrRec PlyrInfo;
-  struct PlyrLocation PlyrLoc[20];
+  struct PlyrLocation *PlyrLoc;
   fptr = fopen(PlyrFile,"rb");
   if (!fptr) gameend(-1);
+
+  PlyrLoc = (struct PlyrLocation *)malloc(sizeof(struct PlyrLocation) * 20);
+  if (!PlyrLoc) gameend(-1);
+  memset(PlyrLoc, 0, sizeof(struct PlyrLocation) * 20);
   while (fread(&PlyrInfo, sizeof(struct PlyrRec), 1, fptr) == 1)
   {
     PlyrLoc[v].Index=PlyrInfo.Index;
@@ -621,6 +625,10 @@ void map(int z)
     PlyrLoc[v].cord_y=PlyrInfo.cord_y;
     PlyrLoc[v].dead=PlyrInfo.dead;
     v++;
+    if (v % 20 == 0) {
+      PlyrLoc = (struct PlyrLocation *)realloc(PlyrLoc, sizeof(struct PlyrLocation) * (v + 20));
+      if (!PlyrLoc) gameend(-1);
+    }
   }
   fclose(fptr);
   while (!done && Plyr.hit_points>0 && Plyr.moves_left>0)
@@ -732,11 +740,11 @@ void map(int z)
     SavePlyr();
     for (int s=1;s<=v;s++)
     {
-      if ((Plyr.map==PlyrLoc[s].map)&&(Plyr.cord_x==PlyrLoc[s].cord_x)&&(Plyr.cord_y==PlyrLoc[s].cord_y)&&(PlyrLoc[s].dead==false)&&(PlyrLoc[s].Alias!=Plyr.Alias))
+  if ((Plyr.map==PlyrLoc[s].map)&&(Plyr.cord_x==PlyrLoc[s].cord_x)&&(Plyr.cord_y==PlyrLoc[s].cord_y)&&(PlyrLoc[s].dead==false)&&(strcmp(PlyrLoc[s].Alias, Plyr.Alias)!=0))
       {
         od_printf("`blue`You have encountered `bright blue`%i %s! `blue`Do you wish to battle them? (Y/N):",PlyrLoc[s].Index,PlyrLoc[s].Alias);
         ch=od_get_answer("YyNn");
-        switch (ch)
+        switch (toupper(ch))
         {
           case 'Y':
             logentry(4);
@@ -798,9 +806,10 @@ void map(int z)
       }
     }
     if ((Plyr.moves_left<=0)||(Plyr.dead==true)) done=1;
-    int tmp=atoi(&mapchar);
-    if (tmp!=0)
+    if (mapchar > '0' && mapchar <= '9')
     {
+      return mapchar - '0';
+/*
       switch (tmp)
       {
         case 1:
@@ -845,9 +854,10 @@ void map(int z)
         case 12:
           town(12);
           break;
-      }
+      } */
     }
   }
+  return z;
 }
 
 char setmap(int mapnumber,int xcord,int ycord)
@@ -2696,6 +2706,7 @@ void play_game()
     strcpy(Plyr.BBS,SystemName);
     //od_printf("%s %s",SystemName,Plyr.BBS);
     //gamepause();
+    Plyr.map = 1;
     Plyr.hit_points=20;
     Plyr.hit_max=20;
     Plyr.hit_multi=0;
