@@ -1,5 +1,4 @@
 PREFIX = /home/dan/temp
-dbg = -O -g
 CC=gcc
 CFLAGS=-Wall
 VERSION_MAJOR:=0
