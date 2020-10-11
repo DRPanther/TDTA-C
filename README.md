@@ -5,6 +5,8 @@ Special Thanks to apam for his assitance and bugfixes.
 BBS Door Game using OpenDoors
 
 [![Build Status](https://travis-ci.com/DRPanther/TDTA-C.svg?token=KMBKVWNe7KxPHS8erLJA&branch=master)](https://travis-ci.com/DRPanther/TDTA-C)
+[![Build status](https://ci.appveyor.com/api/projects/status/q4xeox7i61jp9a6g?svg=true)](https://ci.appveyor.com/project/DRPanther/tdta-c)
+
 
 TDTA is inspired by both LORD and Arrowbridge door games. It has elements
 of both, while being inspired by Stephen King.
