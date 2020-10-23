@@ -13,3 +13,10 @@ tdtaplyr.txt
 tdtaplyr.dat
 tdtaplyr.idx
 rcstdta.dly
+PlyrFile
+msvc/TDTA-C/TDTA-C.vcxproj.filters
+msvc/TDTA-C/TDTA-C.vcxproj.user
+msvc/TDTA-C/.vs
+msvc/TDTA-C/Debug
+msvc/TDTA-C/Release
+*.log
