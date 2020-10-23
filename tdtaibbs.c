@@ -22,7 +22,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#ifdef _MSC_VER
+#include <Windows.h>
+#include <io.h>
+#define strcasecmp stricmp
+#else
 #include <unistd.h>
+#endif
 #include <time.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -148,9 +154,11 @@ void IBBSadd_player_idx()
     {
       fprintf(stderr, "ERROR OPENING tdtaibbs.idx!\n");
       gameend(-1);
-    }
-  fprintf(fptr, "%s+%s\n", od_control_get()->user_name, Plyr1.Alias);
-  fclose(fptr);
+  }
+  else {
+      fprintf(fptr, "%s+%s\n", od_control_get()->user_name, Plyr1.Alias);
+      fclose(fptr);
+  }
 }
 
 int IBBSget_player_idx()
@@ -196,13 +204,15 @@ int IBBSload_player()
     fprintf(stderr, "tdtaibbs.ply missing! please reset.\n");
     od_exit(0, FALSE);
   }
-  fseek(fptr, sizeof(struct PlyrRec) * Plyr1.Index, SEEK_SET);
-  if (fread(&Plyr1, sizeof(struct PlyrRec), 1, fptr) < 1)
-  {
-    fclose(fptr);
-    return 0;
+  else {
+      fseek(fptr, sizeof(struct PlyrRec) * Plyr1.Index, SEEK_SET);
+      if (fread(&Plyr1, sizeof(struct PlyrRec), 1, fptr) < 1)
+      {
+          fclose(fptr);
+          return 0;
+      }
+      fclose(fptr);
   }
-  fclose(fptr);
   return 1;
 }
 

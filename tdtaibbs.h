@@ -20,7 +20,7 @@
 
 #ifndef TDTAIBBS_H_INCLUDED
 #define TDTAIBBS_H_INCLUDED
-
+#pragma pack(push)
 struct ibbsPlyrRec
 {
   int Index;
@@ -49,7 +49,7 @@ struct ibbsPlyrRec
   int cord_x;
   int cord_y;
 };
-
+#pragma pack(pop)
 struct PlyrRec {
 int Index;
 char Name[32];

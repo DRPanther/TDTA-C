@@ -28,11 +28,8 @@
 #define VERSION_MONTH "SEP"
 #define VERSION_YEAR 2020
 
-
-#ifdef WIN32
-#define _MSC_VER 1
+#ifdef _MSC_VER
 #define PATH_SEPERATOR "\\"
-//#endif // WIN32
 #else
 #define PATH_SEPERATOR '/'
 #define NEW_LINE '\n'
@@ -42,7 +39,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#ifdef _MSC_VER
+#include <Windows.h>
+#define PATH_MAX MAX_PATH
+#define strcasecmp stricmp
+#else
 #include <unistd.h>
+#endif
 #include <ctype.h>
 #include <time.h>
 #include <fcntl.h>
@@ -196,7 +199,7 @@ int main(int argc, char *argv[])
     od_init();
     #if defined(_MSC_VER) || defined(WIN32)
     {
-      od_parse_cmd_line(LPSTR pscCmdLine);
+      od_parse_cmd_line(lpszCmdLine);
     }
     #else
     {
@@ -1355,7 +1358,6 @@ void addnews(char name[32], char enemy[32], int happening)
   else
   {
     od_printf("Error opening file %s ...",NewsFile);
-    fclose(fptr);
     gameend(-1);
   }
 }
@@ -1379,62 +1381,42 @@ void dailynews()
         x++;
         fprintf(fptr2,"%s",s);
       }
+      fclose(fptr2);
     }
     else
     {
       od_printf("Error opening file rcstdta.tmp ...");
-      fclose(fptr2);
       fclose(fptr);
       gameend(-1);
     }
+    fclose(fptr);
   }
   else
   {
     od_printf("Error opening file %s ...",NewsFile);
-    fclose(fptr2);
-    fclose(fptr);
     gameend(-1);
   }
-  fclose(fptr2);
-  fclose(fptr);
   if (x>=20)
   {
     fptr = fopen(NewsFile,"w+");
     fptr2 = fopen("rcstdta.tmp","r");
-    if (fptr)
+    if (fptr && fptr2)
     {
-      if (fptr2)
-      {
-        y=x;
-        while (y>19)
+        y = x;
+        while (y > 19)
         {
-          fgets(s,sizeof(s),fptr2);
-          y--;
+            fgets(s, sizeof(s), fptr2);
+            y--;
         }
-        while (y>0)
+        while (y > 0)
         {
-          fgets(s,sizeof(s),fptr2);
-          fprintf(fptr,"%s",s);
-          y--;
+            fgets(s, sizeof(s), fptr2);
+            fprintf(fptr, "%s", s);
+            y--;
         }
-      }
-      else
-      {
-        od_printf("Error opening file...");
         fclose(fptr2);
         fclose(fptr);
-        gameend(-1);
-      }
     }
-    else
-    {
-      od_printf("Error opening file...");
-      fclose(fptr2);
-      fclose(fptr);
-      gameend(-1);
-    }
-    fclose(fptr2);
-    fclose(fptr);
   }
   od_control_get()->od_page_pausing = FALSE;
   send_ansi_file("news");
@@ -2202,9 +2184,11 @@ void ranitem(int randomitem)
         fprintf(stderr, "%s missing! Please Reset. \n",ItemFile);
         od_exit(0, FALSE);
       }
-      fseek(fptr,sizeof(struct ritems) * (rnum-1),SEEK_SET);
-      fread(&Items,sizeof(struct ritems),1,fptr);
-      fclose(fptr);
+      else {
+          fseek(fptr, sizeof(struct ritems) * (rnum - 1), SEEK_SET);
+          fread(&Items, sizeof(struct ritems), 1, fptr);
+          fclose(fptr);
+      }
       int x = checkitems();
       //od_printf("%i\r\n%i\r\n%i\r\n",x,rnum,Items->index);
       if (x!=0)
@@ -2790,9 +2774,11 @@ void add_player_idx()
     {
       fprintf(stderr, "ERROR OPENING players.idx!\n");
       gameend(-1);
-    }
-  fprintf(fptr, "%s+%s\n", od_control_get()->user_name, od_control_get()->user_handle);
-  fclose(fptr);
+  }
+  else {
+      fprintf(fptr, "%s+%s\n", od_control_get()->user_name, od_control_get()->user_handle);
+      fclose(fptr);
+  }
 }
 
 int get_player_idx()
@@ -2838,13 +2824,15 @@ int load_player()
     fprintf(stderr, "rcstdta.ply missing! please reset.\n");
     od_exit(0, FALSE);
   }
-  fseek(fptr, sizeof(struct PlyrRec) * Plyr.Index, SEEK_SET);
-  if (fread(&Plyr, sizeof(struct PlyrRec), 1, fptr) < 1)
-  {
-    fclose(fptr);
-    return 0;
+  else {
+      fseek(fptr, sizeof(struct PlyrRec) * Plyr.Index, SEEK_SET);
+      if (fread(&Plyr, sizeof(struct PlyrRec), 1, fptr) < 1)
+      {
+          fclose(fptr);
+          return 0;
+      }
+      fclose(fptr);
   }
-  fclose(fptr);
   return 1;
 }
 
@@ -2871,7 +2859,7 @@ int scan_for_player(char *username, struct PlyrRec *Plyr)
 void SavePlyr()
 {
   #if defined(_MSC_VER) || defined(WIN32)
-    int fno = open("PlyrFile", O_WRONLY | O_CREAT | O_BINARY, 0644);
+    int fno = open(PlyrFile, O_WRONLY | O_CREAT | O_BINARY, 0644);
   #else
     int fno = open(PlyrFile, O_WRONLY | O_CREAT, 0644);
   #endif // defined
@@ -2887,7 +2875,7 @@ void SavePlyr()
 void SaveUser()
 {
   #if defined(_MSC_VER) || defined(WIN32)
-    int fno = open("PlyrFile", O_WRONLY | O_CREAT | O_BINARY, 0644);
+    int fno = open(PlyrFile, O_WRONLY | O_CREAT | O_BINARY, 0644);
   #else
     int fno = open(PlyrFile, O_WRONLY | O_CREAT, 0644);
   #endif // defined
