@@ -24,12 +24,15 @@
 #ifndef VERSION_TYPE
 #define VERSION_TYPE "alpha"
 #endif
-#define VERSION_DAY 14
-#define VERSION_MONTH "SEP"
+#define VERSION_DAY 18
+#define VERSION_MONTH "OCT"
 #define VERSION_YEAR 2020
 
-#ifdef _MSC_VER
+
+#ifdef WIN32
+#define _MSC_VER 1
 #define PATH_SEPERATOR "\\"
+//#endif // WIN32
 #else
 #define PATH_SEPERATOR '/'
 #define NEW_LINE '\n'
@@ -39,13 +42,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#ifdef _MSC_VER
-#include <Windows.h>
-#define PATH_MAX MAX_PATH
-#define strcasecmp stricmp
-#else
 #include <unistd.h>
-#endif
 #include <ctype.h>
 #include <time.h>
 #include <fcntl.h>
@@ -136,7 +133,7 @@ void send_ansi_file(const char *ansi) {
 }
 
 void logentry(int entry)  //1 log in - 2 log out - 3 fought trainer - 4 fought player - 5 new player - 6 ibbsin - 7 ibbsout
-{
+{                               //Should this function just receive the text to enter into the logs?
     struct tm* current_time;
     time_t s = time(NULL);
     current_time = localtime(&s);
@@ -199,7 +196,7 @@ int main(int argc, char *argv[])
     od_init();
     #if defined(_MSC_VER) || defined(WIN32)
     {
-      od_parse_cmd_line(lpszCmdLine);
+      od_parse_cmd_line(LPSTR pscCmdLine);
     }
     #else
     {
@@ -217,7 +214,7 @@ int main(int argc, char *argv[])
     od_sleep(500);
     od_printf("`blue`.");
     od_sleep(500);
-    
+
     send_ansi_file("splash");
 
     od_clear_keybuffer();
@@ -240,7 +237,7 @@ int main(int argc, char *argv[])
         od_set_cursor(15,32);
         od_printf("`blue`(`bright blue`Q`blue`)`bright blue`uit back to BBS");
         od_set_cursor(24,1);
-        od_printf("%s\r\n%s",logpath,logname);
+        //od_printf("%s\r\n%s",logpath,logname);
         od_clear_keybuffer();
         ch = od_get_answer("LlIiVvSsQq");
         switch (ch) {
@@ -451,7 +448,7 @@ void town(int x)
   char ch;
   int done=0,temp;
   Plyr.map=x;
-  if (Plyr.dead==true)
+  if (Plyr.dead==true)                         //For testing purposes - Remove before distribution
   {
     Plyr.dead=false;
     Plyr.hit_points=Plyr.hit_max+Plyr.hit_multi;
@@ -496,7 +493,7 @@ void town(int x)
     od_set_cursor(23,1);
     od_printf("`blue`Your command, `bright blue` %s:",Plyr.Alias);
     ch = od_get_answer("SsFfBbAaKkDdHhYyLlVvTtPpQq+-");
-    switch (ch)
+    switch (toupper(ch))
     {
       case 'F':
         Plyr.map = map(Plyr.map);
@@ -564,7 +561,7 @@ void town(int x)
         if (Plyr.level==12) tower();
         SavePlyr();
         break;
-      case 'S':
+      case 'S':                               //Testing
         Plyr.exp+=10;
         Plyr.gold+=1000000000;
         Plyr.hit_points=Plyr.hit_max+Plyr.hit_multi;
@@ -575,14 +572,14 @@ void town(int x)
         Plyr.dead=false;
         Plyr.seen_master=FALSE;
         break;
-      case '+':
+      case '+':                               //Testing
         Plyr.level++;
         Plyr.hit_max+=(5*Plyr.level);
         Plyr.hit_points=Plyr.hit_max+Plyr.hit_multi;
         if (Plyr.level>12) Plyr.level=12;
         SavePlyr();
         break;
-      case '-':
+      case '-':                                //Testing
         Plyr.level--;
         if (Plyr.level<1) Plyr.level=1;
         Plyr.map--;
@@ -675,6 +672,24 @@ int map(int z)
         SavePlyr();
         send_ansi_file("map4");
         break;
+      case 5:
+        if (Plyr.cord_x==0 && Plyr.cord_y==0)
+        {
+          x=19;
+          y=5;
+        }
+        SavePlyr();
+        send_ansi_file("map5");
+        break;
+      case 6:
+        if (Plyr.cord_x==0 && Plyr.cord_y==0)
+        {
+          x=16;
+          y=5;
+        }
+        SavePlyr();
+        send_ansi_file("map6");
+        break;
     }
     if (x<1) x=1;
     if (y>20) y=20;
@@ -695,8 +710,7 @@ int map(int z)
     switch (ch)
     {
       case '2':
-        setmap(z,x,y+1);
-        if(mapchar!='X')
+        if(setmap(z,x,y+1)!='X')
         {
           y++;
           Plyr.moves_left--;
@@ -704,8 +718,7 @@ int map(int z)
         else userbattle=TRUE;
         break;
       case '8':
-        setmap(z,x,y-1);
-        if(mapchar!='X')
+        if(setmap(z,x,y=1)!='X')
         {
           y--;
           Plyr.moves_left--;
@@ -713,8 +726,7 @@ int map(int z)
         else userbattle=TRUE;
         break;
       case '4':
-        setmap(z,x-1,y);
-        if(mapchar!='X')
+        if(setmap(z,x-1,y)!='X')
         {
           x--;
           Plyr.moves_left--;
@@ -722,8 +734,7 @@ int map(int z)
         else userbattle=TRUE;
         break;
       case '6':
-        setmap(z,x+1,y);
-        if(mapchar!='X')
+        if(setmap(z,x+1,y)!='X')
         {
           x++;
           Plyr.moves_left--;
@@ -812,52 +823,6 @@ int map(int z)
     if (mapchar > '0' && mapchar <= '9')
     {
       return mapchar - '0';
-/*
-      switch (tmp)
-      {
-        case 1:
-          //if ((y<=20)&&(y>=18)&&(x<=5)) town(1);
-          //if ((y>=10)&&(y<=13)&&(x>=76)) town(2);
-          town(1);
-          break;
-        case 2:
-          //if ((y<=11)&&(y>=9)&&(x<=4)) town(2);
-          //if ((y<=3)&&(x>=77)) town(3);
-          town(2);
-          break;
-        case 3:
-          //if ((y<=4)&&(x<=4)) town(3);
-          //if ((y>=12)&&(y<=14)&&(x>=77)) town(4);
-          town(3);
-          break;
-        case 4:
-          town(4);
-          break;
-        case 5:
-          town(5);
-          break;
-        case 6:
-          town(6);
-          break;
-        case 7:
-          town(7);
-          break;
-        case 8:
-          town(8);
-          break;
-        case 9:
-          town(9);
-          break;
-        case 10:
-          town(10);
-          break;
-        case 11:
-          town(11);
-          break;
-        case 12:
-          town(12);
-          break;
-      } */
     }
   }
   return z;
@@ -890,7 +855,7 @@ char setmap(int mapnumber,int xcord,int ycord)
     od_printf("Unable to open maps.asc");
     gamepause();
   }
-  return 0;
+  return mapchar;
 }
 
 void healer()
@@ -939,7 +904,7 @@ void healer()
       {
         temp1=tmp-Plyr.hit_points;
         Plyr.gold-=temp;
-        Plyr.hit_points+=tmp;
+        Plyr.hit_points+=temp1;
         od_printf("   Restored %d hit points. ",temp1);
         gamepause();
         break;
@@ -1358,6 +1323,7 @@ void addnews(char name[32], char enemy[32], int happening)
   else
   {
     od_printf("Error opening file %s ...",NewsFile);
+    fclose(fptr);
     gameend(-1);
   }
 }
@@ -1381,42 +1347,62 @@ void dailynews()
         x++;
         fprintf(fptr2,"%s",s);
       }
-      fclose(fptr2);
     }
     else
     {
       od_printf("Error opening file rcstdta.tmp ...");
+      fclose(fptr2);
       fclose(fptr);
       gameend(-1);
     }
-    fclose(fptr);
   }
   else
   {
     od_printf("Error opening file %s ...",NewsFile);
+    fclose(fptr2);
+    fclose(fptr);
     gameend(-1);
   }
+  fclose(fptr2);
+  fclose(fptr);
   if (x>=20)
   {
     fptr = fopen(NewsFile,"w+");
     fptr2 = fopen("rcstdta.tmp","r");
-    if (fptr && fptr2)
+    if (fptr)
     {
-        y = x;
-        while (y > 19)
+      if (fptr2)
+      {
+        y=x;
+        while (y>19)
         {
-            fgets(s, sizeof(s), fptr2);
-            y--;
+          fgets(s,sizeof(s),fptr2);
+          y--;
         }
-        while (y > 0)
+        while (y>0)
         {
-            fgets(s, sizeof(s), fptr2);
-            fprintf(fptr, "%s", s);
-            y--;
+          fgets(s,sizeof(s),fptr2);
+          fprintf(fptr,"%s",s);
+          y--;
         }
+      }
+      else
+      {
+        od_printf("Error opening file...");
         fclose(fptr2);
         fclose(fptr);
+        gameend(-1);
+      }
     }
+    else
+    {
+      od_printf("Error opening file...");
+      fclose(fptr2);
+      fclose(fptr);
+      gameend(-1);
+    }
+    fclose(fptr2);
+    fclose(fptr);
   }
   od_control_get()->od_page_pausing = FALSE;
   send_ansi_file("news");
@@ -1432,7 +1418,7 @@ void dailynews()
   gamepause();
 }
 
-char* goldconvert(long int x)          //turns int into string containing commas for better readablity
+char* goldconvert(long int x)          //turns int into string containing commas for better readability
 {
   sprintf(comma,"%ld",x);
   switch (findtotaldigits(x))
@@ -1565,7 +1551,7 @@ void bank()
   char ch;
   int done=0;
   unsigned long int dep;
-  //char buffer[12]="";
+  char buffer[20]="";
   while (!done)
   {
     od_clr_scr();
@@ -1603,9 +1589,9 @@ void bank()
         od_printf("`blue`H`bright blue`ow much gold to deposit? `blue`(1 for all)");
         od_set_cursor(19,5);
         od_printf("`blue`Amount: `bright blue`");
-        //od_input_str(buffer,12,'0','9');
-        //dep = atoi(buffer);
-        scanf("%ld",&dep);
+        od_input_str(buffer,12,'0','9');
+        dep = atoi(buffer);
+        //scanf("%ld",&dep);
         if (dep > 0)
         {
           if (dep == 1) dep = Plyr.gold;
@@ -1639,9 +1625,9 @@ void bank()
         od_printf("`blue`H`bright blue`ow much gold would you like to withdraw? `blue`(1 for all)");
         od_set_cursor(19,5);
         od_printf("`blue`Amount: `bright blue`");
-        //od_input_str(buffer,20,'0','9');
-        //dep = atoi(buffer);
-        scanf("%ld",&dep);
+        od_input_str(buffer,20,'0','9');
+        dep = atoi(buffer);
+        //scanf("%ld",&dep);
         if (dep > 0)
         {
           if (dep == 1) dep = Plyr.bank;
@@ -1875,7 +1861,7 @@ void tower()          //will be used at end of game...
     od_printf("`blue`(`bright blue`V`blue`)`bright blue`iew Stats");
     od_set_cursor(11,3);
     od_printf("`blue`(`bright blue`U`blue`)`bright blue`p a level");
-    od_set_cursor(12,3);
+    //od_set_cursor(12,3);
     //od_printf("`blue`(`bright blue`D`blue`)`bright blue`own a level");
     od_set_cursor(14,3);
     od_printf("`blue`(`bright blue`R`blue`)`bright blue`eturn to town");
@@ -1945,7 +1931,7 @@ void tower()          //will be used at end of game...
               ranitem(4);   //lose HP
               ran=true;
               break;
-            /*case 65:
+            /*case 65:                 //Removed - Don't really want to downgrade anything during these battles
               ranitem(5);   //upgrade weapon
               ran=true;
               break;
@@ -2184,11 +2170,9 @@ void ranitem(int randomitem)
         fprintf(stderr, "%s missing! Please Reset. \n",ItemFile);
         od_exit(0, FALSE);
       }
-      else {
-          fseek(fptr, sizeof(struct ritems) * (rnum - 1), SEEK_SET);
-          fread(&Items, sizeof(struct ritems), 1, fptr);
-          fclose(fptr);
-      }
+      fseek(fptr,sizeof(struct ritems) * (rnum-1),SEEK_SET);
+      fread(&Items,sizeof(struct ritems),1,fptr);
+      fclose(fptr);
       int x = checkitems();
       //od_printf("%i\r\n%i\r\n%i\r\n",x,rnum,Items->index);
       if (x!=0)
@@ -2685,6 +2669,8 @@ void play_game()
     od_printf("\r\nWelcome %s!",Plyr.Alias);
     //gamepause();
     od_printf("\r\nAnd what is your gender? \r\n");
+    od_sleep(500);
+    od_printf("\r\nIt's alright, I'll wait while you check...\r\n");
     ch = od_get_answer("MmFf\r");
     if (ch=='M' || ch=='m')
     {
@@ -2696,6 +2682,7 @@ void play_game()
       Plyr.sex=false;
       od_printf("Alright, you're a female...\r\n");
     }
+    od_printf("\r\nYou can pull your pants up now...");
     gamepause();
     strcpy(Plyr.BBS,SystemName);
     //od_printf("%s %s",SystemName,Plyr.BBS);
@@ -2772,13 +2759,11 @@ void add_player_idx()
   fptr = fopen("tdtaplyr.idx", "a");
   if (!fptr)
     {
-      fprintf(stderr, "ERROR OPENING players.idx!\n");
+      fprintf(stderr, "ERROR OPENING tdtaplyr.idx!\n");
       gameend(-1);
-  }
-  else {
-      fprintf(fptr, "%s+%s\n", od_control_get()->user_name, od_control_get()->user_handle);
-      fclose(fptr);
-  }
+    }
+  fprintf(fptr, "%s+%s\n", od_control_get()->user_name, od_control_get()->user_handle);
+  fclose(fptr);
 }
 
 int get_player_idx()
@@ -2821,18 +2806,16 @@ int load_player()
   fptr = fopen(PlyrFile, "rb");
   if (!fptr)
   {
-    fprintf(stderr, "rcstdta.ply missing! please reset.\n");
+    fprintf(stderr, "Player database file missing! please reset.\n");
     od_exit(0, FALSE);
   }
-  else {
-      fseek(fptr, sizeof(struct PlyrRec) * Plyr.Index, SEEK_SET);
-      if (fread(&Plyr, sizeof(struct PlyrRec), 1, fptr) < 1)
-      {
-          fclose(fptr);
-          return 0;
-      }
-      fclose(fptr);
+  fseek(fptr, sizeof(struct PlyrRec) * Plyr.Index, SEEK_SET);
+  if (fread(&Plyr, sizeof(struct PlyrRec), 1, fptr) < 1)
+  {
+    fclose(fptr);
+    return 0;
   }
+  fclose(fptr);
   return 1;
 }
 
@@ -2859,7 +2842,7 @@ int scan_for_player(char *username, struct PlyrRec *Plyr)
 void SavePlyr()
 {
   #if defined(_MSC_VER) || defined(WIN32)
-    int fno = open(PlyrFile, O_WRONLY | O_CREAT | O_BINARY, 0644);
+    int fno = open("PlyrFile", O_WRONLY | O_CREAT | O_BINARY, 0644);
   #else
     int fno = open(PlyrFile, O_WRONLY | O_CREAT, 0644);
   #endif // defined
@@ -2875,7 +2858,7 @@ void SavePlyr()
 void SaveUser()
 {
   #if defined(_MSC_VER) || defined(WIN32)
-    int fno = open(PlyrFile, O_WRONLY | O_CREAT | O_BINARY, 0644);
+    int fno = open("PlyrFile", O_WRONLY | O_CREAT | O_BINARY, 0644);
   #else
     int fno = open(PlyrFile, O_WRONLY | O_CREAT, 0644);
   #endif // defined
